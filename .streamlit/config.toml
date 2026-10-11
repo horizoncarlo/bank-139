@@ -15,3 +15,7 @@ port = 8501 # Default 8501
 enableCORS = true # Default true, but might need to set corsAllowedOrigins when deployed
 maxUploadSize = 10 # Default 200mb
 enableStaticServing = false # Default false, but if true auto-serves files from static/
+
+[theme]
+base = "dark"
+primaryColor = "rebeccapurple"

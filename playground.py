@@ -13,6 +13,8 @@ st.set_page_config(page_title="Bank 139 - \"Real World Money. Virtually\"",
 if 'counter' not in st.session_state:
     st.session_state.counter = 0
 
+st.write("Badge as markdown is neat :green-badge[Our Text]")
+
 @st.cache_data(show_spinner=False)
 def progress_sample():
     'Starting a long computation...'
