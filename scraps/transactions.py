@@ -10,25 +10,30 @@ def render():
         return
 
     transactions = pd.DataFrame(st.session_state.transactions)
-    transactions["approved_at"] = pd.to_datetime(transactions["approved_at"], unit="s")
-    transactions["created_at"] = pd.to_datetime(transactions["created_at"], unit="s")
+    transactions["reviewed_at"] = pd.to_datetime(transactions["reviewed_at"], unit="s", utc=True).dt.tz_convert(util.TIMEZONE)
+    transactions["created_at"] = pd.to_datetime(transactions["created_at"], unit="s", utc=True).dt.tz_convert(util.TIMEZONE)
+
+    transactions = transactions.style.map(
+        lambda amount: "color: green" if amount >= 0 else "color: red",
+        subset=["amount"]
+    ).format({
+        "amount": lambda amount: util.money(amount, disable_color=True)
+    })
 
     # TODO See https://docs.streamlit.io/develop/api-reference/data/st.column_config for dataframe column config
     trans_config = {
-        "amount": st.column_config.NumberColumn(
-            label="Amount",
-            format="dollar" # TODO Need to use util.money here
-        ),
+        "amount": "Amount",
         "description": "Description",
         "location": "Location",
-        "is_approved": st.column_config.MarkdownColumn("Approved?"),
-        "approved_by": "Approved By",
-        "approved_at": st.column_config.DatetimeColumn("Approved At", format="distance"),
+        "is_approved": "Approved?",
+        "reviewed_by": "Reviewed By",
+        "reviewed_at": st.column_config.DatetimeColumn("Reviewed At", format="distance"),
         "created_at": st.column_config.DatetimeColumn("Date", format=util.DEFAULT_DATE_FORMAT)
     }
+
+    # TODO Add "cancel transaction" request for non-approved pending options
 
     st.dataframe(transactions,
                  column_config=trans_config,
                  height="content",
-                 on_select="ignore",
-                 hide_index=True)
+                 on_select="ignore")

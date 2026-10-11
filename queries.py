@@ -8,14 +8,14 @@ query_strings = {
         is_admin INTEGER NOT NULL DEFAULT 0
         )""",
     "create_transaction_table": """CREATE TABLE IF NOT EXISTS transactions (
-        transaction_id TEXT PRIMARY KEY,
+        transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
         owner TEXT NOT NULL,
         amount INTEGER NOT NULL DEFAULT 0,
         description TEXT NOT NULL,
         location TEXT,
         is_approved INTEGER DEFAULT 0,
-        approved_by TEXT,
-        approved_at INTEGER,
+        reviewed_by TEXT,
+        reviewed_at INTEGER,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
         )""",
     "drop_user_table": "DROP TABLE IF EXISTS users",
@@ -24,15 +24,26 @@ query_strings = {
     "do_login": "SELECT * FROM users WHERE username = ? AND password = ?",
     "select_recent_transactions": """
         SELECT
-            t.amount / 100.0 AS amount,
+            t.amount,
             t.description,
             t.location,
-            CASE WHEN t.is_approved THEN 'Yes' ELSE 'No' END AS is_approved,
-            u.name AS approved_by,
-            t.approved_at,
-            t.created_at
+            t.created_at,
+            CASE
+                WHEN NULLIF(TRIM(t.reviewed_by), '') IS NULL THEN 'Waiting'
+                WHEN t.is_approved THEN 'Yes'
+                ELSE 'No'
+            END AS is_approved,
+            u.name AS reviewed_by,
+            t.reviewed_at
         FROM transactions t
-        LEFT JOIN users u ON u.username = t.approved_by
+        LEFT JOIN users u ON u.username = t.reviewed_by
         WHERE t.owner = ?
-    """
+        ORDER BY t.created_at DESC LIMIT ?
+    """,
+    "select_pending_total": """
+        SELECT COALESCE(SUM(amount), 0) AS pending_amount
+        FROM transactions
+        WHERE owner = ?
+          AND is_approved = False
+    """,
 }

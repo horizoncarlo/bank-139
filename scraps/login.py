@@ -1,8 +1,16 @@
 import streamlit as st
 
 import persist as db
+import util
 
 def render():
+    if util.DEBUG:
+        st.session_state.logged_in = True
+        # TODO Likely just debug login as a user...depends what we're testing
+        st.session_state.user = db.get_first_user()
+        # st.session_state.user = db.get_first_admin_user()
+        return
+
     stop_flow = True
 
     with st.form("login_form"):
