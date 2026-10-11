@@ -21,6 +21,9 @@ db.init()
 # If we're not logged in, show that screen
 if 'logged_in' not in st.session_state:
     scraps.login.render()
+if 'need_balloons' in st.session_state:
+    st.balloons() # Celebrate a bit
+    del st.session_state.need_balloons
 
 # Show our debug options
 if util.DEBUG:
@@ -60,9 +63,14 @@ def do_transaction(deposit = True):
             # TODO ntfy.sh admin channel about new transaction?
 
             out_of_money = False
-            if not deposit:
-                out_of_money = abs(amount_as_cents) > st.session_state.user.balance
+            if not deposit and not st.session_state.user.is_admin:
+                out_of_money = st.session_state.user.balance + amount_as_cents < 0
+            else:
+                st.session_state.need_balloons = True
             st.toast(f"Completed new {trans_type} for ${st.session_state.trans_amount:.2f}! {'\n\nNote you would be :red-badge[OUT OF MONEY] from this transaction. Good luck with approval :smirk:' if out_of_money else ''}", duration="long" if out_of_money else "short")
+
+            if st.session_state.user.is_admin:
+                st.session_state.user.balance += amount_as_cents
 
             # Clear our transactions in-memory so we refetch
             del st.session_state.transactions
@@ -94,6 +102,7 @@ with col4:
 # TODO Users should be able to delete their reviewed and REJECTED transactions, to keep the table clean. Means a data_editor instead of dataframe
 scraps.transactions.render()
 
+# TODO Move the approval table to a new `scraps`
 if st.session_state.user.is_admin:
     if 'waiting_transactions' not in st.session_state:
         st.session_state.waiting_transactions = db.get_waiting_transactions(st.session_state.user.username)

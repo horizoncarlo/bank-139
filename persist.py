@@ -115,8 +115,15 @@ def review_transaction(transaction_id, is_approved, reviewer_username):
 def create_transaction(username, amount_as_cents, description, location, is_admin):
     with connection() as conn:
         reviewed_by = username if is_admin else None
-        conn.execute("INSERT INTO transactions (owner, amount, description, location, is_approved, reviewed_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                     (username, amount_as_cents, description, location, is_admin, reviewed_by, int(time.time())))
+        reviewed_at = int(time.time()) if is_admin else None
+        conn.execute("INSERT INTO transactions (owner, amount, description, location, is_approved, reviewed_by, reviewed_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                     (username, amount_as_cents, description, location, is_admin, reviewed_by, reviewed_at, int(time.time())))
+
+        if is_admin:
+            conn.execute(
+                "UPDATE users SET balance = balance + ? WHERE username = ?",
+                (amount_as_cents, username)
+            )
 
 def get_first_user(): # For debugging
     with connection() as conn:
