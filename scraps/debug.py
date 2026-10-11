@@ -4,6 +4,8 @@ import persist as db
 def render():
     with st.expander(":orange-badge[:desktop_computer: DEBUG SETTINGS]"):
         msg = None
+        stop_requested = False
+
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             if st.button("Become Admin", width=150):
@@ -23,6 +25,10 @@ def render():
             if st.button("Delete DB", width=150):
                 db.delete_all()
                 msg = "Deleted the entire database, refresh the page to redo initialization"
+                stop_requested = True
 
+        # Put at the bottom so the message formats our entire column width
         if msg:
             st.success(msg)
+        if stop_requested:
+            st.stop()

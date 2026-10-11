@@ -67,6 +67,51 @@ def get_pending_total(username):
     with connection() as conn:
         return conn.execute(queries['select_pending_total'], (username,)).fetchone()[0]
 
+def get_waiting_transactions(username):
+    with connection() as conn:
+        res = conn.execute("""
+            SELECT t.transaction_id, u.name, t.amount, t.description, t.location, u.balance, t.reviewed_by
+            FROM transactions t
+            JOIN users u ON u.username = t.owner
+            WHERE t.owner != ?
+              AND t.reviewed_by IS NULL
+        """, (username,)).fetchall()
+
+        return [
+            {
+                "ID": row[0],
+                "Owner": row[1],
+                "Amount": util.money(row[2], disable_color=True),
+                "Description": row[3],
+                "Location": row[4],
+                "Deny": "Deny",
+                "Approve": "Approve",
+                "Current Balance": util.money(row[5], disable_color=True)
+            }
+            for row in res
+        ]
+
+def review_transaction(transaction_id, is_approved, reviewer_username):
+    with connection() as conn:
+        row = conn.execute(
+            "SELECT owner, amount FROM transactions WHERE transaction_id = ?",
+            (transaction_id,)
+        ).fetchone()
+
+        if row is None:
+            return False
+
+        conn.execute("UPDATE transactions SET is_approved = ?, reviewed_by = ?, reviewed_at = ? WHERE transaction_id = ?",
+                     (is_approved, reviewer_username, int(time.time()), transaction_id))
+
+        # Only update the balance if we actually approve the transaction
+        if is_approved:
+            owner, amount = row
+            conn.execute(
+                "UPDATE users SET balance = balance + ? WHERE username = ?",
+                (amount, owner)
+            )
+
 def create_transaction(username, amount_as_cents, description, location, is_admin):
     with connection() as conn:
         reviewed_by = username if is_admin else None

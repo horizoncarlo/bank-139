@@ -44,6 +44,6 @@ query_strings = {
         SELECT COALESCE(SUM(amount), 0) AS pending_amount
         FROM transactions
         WHERE owner = ?
-          AND is_approved = False
+          AND reviewed_by IS NULL
     """,
 }
