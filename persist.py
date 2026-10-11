@@ -1,8 +1,13 @@
+import sqlite3
 from dataclasses import dataclass
+
+from queries import query_strings as queries
+import util
 
 @dataclass
 class User:
-    user_id: str
+    username: str
+    password: str
     emoji: str # Emoji shortcode such as :smirk:
     name: str
     balance: int
@@ -19,9 +24,37 @@ class Transaction:
     approved_at: int # Unix timestamp
     created_at: int # Unix timestamp
 
+conn = sqlite3.connect("bank.db")
+
+def init():
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute(queries['create_user_table'])
+        cursor.execute(queries['create_transaction_table'])
+
+        if util.DEBUG:
+            default_users = util.get_default_users()
+            if default_users:
+                cursor.executemany(queries['insert_default_users'], default_users)
+
+        conn.commit()
+
+def delete_all():
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute(queries['drop_user_table'])
+        cursor.execute(queries['drop_transaction_table'])
+        conn.commit()
+
 def get_users():
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users")
+        res = cursor.fetchall()
+        print(f"TODO Get users {res}")
+
     return [
-        User(user_id="alice5000", emoji=":smirk:", name="Alice", balance=7650)
+        User(username="alice5000", password="batman", emoji=":smirk:", name="Alice", balance=7650)
     ]
 
 def get_recent_transactions():

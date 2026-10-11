@@ -1,12 +1,26 @@
 import streamlit as st
 import pandas as pd
+
 import persist as db
 import util
 
-_DEBUG = st.secrets.get("is_dev", True)
+db.init()
 
-if _DEBUG and st.button("Clear Session"):
-    st.session_state.clear()
+if util.DEBUG:
+    with st.expander(":orange-badge[:desktop_computer: DEBUG SETTINGS]"):
+        msg = None
+        col1, col2 = st.columns(2, width=400)
+        with col1:
+            if st.button("Clear Session", width=150):
+                st.session_state.clear()
+                msg = "Browser session data has been cleared"
+        with col2:
+            if st.button("Delete DB", width=150):
+                db.delete_all()
+                msg = "Deleted the entire database, refresh the page to redo initialization"
+
+        if msg:
+            st.success(msg)
 
 if 'user' not in st.session_state:
     st.session_state.user = db.get_current_user()
@@ -31,11 +45,8 @@ with col3:
         st.button(":money_with_wings: Withdraw", width=200)
 
 transactions = pd.DataFrame(st.session_state.transactions)
-
 transactions["approved_at"] = pd.to_datetime(transactions["approved_at"], unit="s")
 transactions["created_at"] = pd.to_datetime(transactions["created_at"], unit="s")
-
-default_date_format = "hh:mm:ss a, YYYY-MM-DD"
 
 trans_config = {
     "amount": st.column_config.NumberColumn(
@@ -47,7 +58,7 @@ trans_config = {
     "is_approved": st.column_config.MarkdownColumn("Approved?"),
     "approved_id": "Approved By",
     "approved_at": st.column_config.DatetimeColumn("Approved At", format="distance"),
-    "created_at": st.column_config.DatetimeColumn("Date", format=default_date_format)
+    "created_at": st.column_config.DatetimeColumn("Date", format=util.DEFAULT_DATE_FORMAT)
 }
 
 st.dataframe(transactions,
