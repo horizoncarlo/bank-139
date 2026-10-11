@@ -1,0 +1,1 @@
+TODO Remember auto allowance feature
