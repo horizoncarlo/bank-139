@@ -1,4 +1,7 @@
+import streamlit as st
+
 import sqlite3
+from contextlib import closing, contextmanager
 from dataclasses import dataclass
 
 from queries import query_strings as queries
@@ -15,54 +18,48 @@ class User:
 
 @dataclass
 class Transaction:
-    owner_id: str
+    owner: str
     amount: int
     description: str
     location: str | None # Optional
     is_approved: bool
-    approved_id: str
+    approved_by: str
     approved_at: int # Unix timestamp
     created_at: int # Unix timestamp
 
-conn = sqlite3.connect("bank.db")
+DB_NAME = st.secrets.get("db_name", "bank.db")
+RECENT_TRANSACTION_LIMIT = st.secrets.get("recent_transaction_limit", 50)
+
+@contextmanager
+def connection():
+    with closing(sqlite3.connect(DB_NAME)) as conn:
+        with conn:
+            yield conn
 
 def init():
-    with conn:
-        cursor = conn.cursor()
-        cursor.execute(queries['create_user_table'])
-        cursor.execute(queries['create_transaction_table'])
+    with connection() as conn:
+        conn.execute(queries['create_user_table'])
+        conn.execute(queries['create_transaction_table'])
 
         if util.DEBUG:
             default_users = util.get_default_users()
             if default_users:
-                cursor.executemany(queries['insert_default_users'], default_users)
-
-        conn.commit()
+                conn.executemany(queries['insert_default_users'], default_users)
 
 def delete_all():
-    with conn:
-        cursor = conn.cursor()
-        cursor.execute(queries['drop_user_table'])
-        cursor.execute(queries['drop_transaction_table'])
-        conn.commit()
+    with connection() as conn:
+        conn.execute(queries['drop_user_table'])
+        conn.execute(queries['drop_transaction_table'])
 
-def get_users():
-    with conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users")
-        res = cursor.fetchall()
-        print(f"TODO Get users {res}")
+def login(username, password):
+    with connection() as conn:
+        res = conn.execute(queries['do_login'], (username, password)).fetchone()
+        return User(*res) if res else None
 
-    return [
-        User(username="alice5000", password="batman", emoji=":smirk:", name="Alice", balance=7650)
-    ]
-
-def get_recent_transactions():
-    # TODO Trim some fields to hide needless data, but realistically proper db will return via tailored SELECT
-    return [
-        (t.amount, t.description, t.location, t.is_approved, t.approved_id, t.approved_at, t.created_at)
-        for t in get_transactions()
-    ]
+def get_recent_transactions(username):
+    with connection() as conn:
+        res = conn.execute(queries['select_recent_transactions'], (username,))
+        return res.fetchmany(RECENT_TRANSACTION_LIMIT)
 
 def get_transactions():
     return [
@@ -117,9 +114,6 @@ def get_transactions():
         Transaction("user_001", 600, "Weekend allowance", None, False, "", 0, 1787389200),
         Transaction("user_004", 400, "Book return refund", "Bookstore", True, "admin_001", 1787299200, 1787295600),
     ]
-
-def get_current_user():
-    return get_users()[0]
 
 def calc_balance_delta():
     return 5 # TODO Determine our balance delta from the most recent 2 weeks
