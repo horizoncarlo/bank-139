@@ -1,9 +1,11 @@
+from contextlib import asynccontextmanager
+
 import streamlit as st
 
-from contextlib import asynccontextmanager
 
 def setup_auto_allowance():
     print("TODO Auto allowance")
+
 
 @asynccontextmanager
 async def lifespan(app):
@@ -12,5 +14,6 @@ async def lifespan(app):
 
     yield
     # This would run after the app is shutdown
+
 
 app = st.App("support/app.py", lifespan=lifespan)

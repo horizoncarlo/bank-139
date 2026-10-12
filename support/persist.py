@@ -1,34 +1,38 @@
-import streamlit as st
-
-import time
 import sqlite3
+import time
 from contextlib import closing, contextmanager
 from dataclasses import dataclass
 
-from queries import query_strings as queries
+import streamlit as st
 import util
+from queries import query_strings as queries
+
 
 @dataclass
 class User:
     username: str
     password: str
-    emoji: str # Emoji shortcode such as :smirk:
+    emoji: str  # Emoji shortcode such as :smirk:
     name: str
-    message: str # Message below their name on home
+    message: str  # Message below their name on home
     balance: int
     is_admin: bool = False
     pending_balance: int | None = None
+
 
 @dataclass
 class Transaction:
     transaction_id: int
     amount: int
     description: str
-    location: str | None # Optional
+    location: str | None  # Optional
     created_at: int  # Unix timestamp
-    is_approved: str | None  # Actual table is boolean, but here we use Yes or No for readability
+    is_approved: (
+        str | None
+    )  # Actual table is boolean, but here we use Yes or No for readability
     reviewed_by: str | None = None
-    reviewed_at: int | None = None # Unix timestamp
+    reviewed_at: int | None = None  # Unix timestamp
+
 
 @contextmanager
 def connection():
@@ -36,41 +40,49 @@ def connection():
         with conn:
             yield conn
 
+
 def init():
     with connection() as conn:
-        conn.execute(queries['create_user_table'])
-        conn.execute(queries['create_transaction_table'])
+        conn.execute(queries["create_user_table"])
+        conn.execute(queries["create_transaction_table"])
 
         if util.DEBUG:
             default_users = util.get_default_users()
             if default_users:
-                conn.executemany(queries['insert_default_users'], default_users)
+                conn.executemany(queries["insert_default_users"], default_users)
+
 
 def delete_all_tables():
     with connection() as conn:
-        conn.execute(queries['drop_user_table'])
-        conn.execute(queries['drop_transaction_table'])
+        conn.execute(queries["drop_user_table"])
+        conn.execute(queries["drop_transaction_table"])
+
 
 def login(username, password):
     with connection() as conn:
-        res = conn.execute(queries['do_login'], (username, password)).fetchone()
+        res = conn.execute(queries["do_login"], (username, password)).fetchone()
         return User(*res) if res else None
 
-def get_recent_transactions(username, fetch_all_instead = False):
+
+def get_recent_transactions(username, fetch_all_instead=False):
     with connection() as conn:
-        res = conn.execute(queries['select_recent_transactions'], (username, util.RECENT_TRANSACTION_LIMIT if not fetch_all_instead else -1)).fetchall()
-        return [
-            Transaction(*row)
-            for row in res
-        ]
+        res = conn.execute(
+            queries["select_recent_transactions"],
+            (username, util.RECENT_TRANSACTION_LIMIT if not fetch_all_instead else -1),
+        ).fetchall()
+        return [Transaction(*row) for row in res]
+
 
 def get_pending_total(username):
     with connection() as conn:
-        return conn.execute(queries['select_pending_total'], (username,)).fetchone()[0]
+        return conn.execute(queries["select_pending_total"], (username,)).fetchone()[0]
+
 
 def get_waiting_transactions(username):
     with connection() as conn:
-        res = conn.execute(queries['select_waiting_transactions'], (username,)).fetchall()
+        res = conn.execute(
+            queries["select_waiting_transactions"], (username,)
+        ).fetchall()
 
         return [
             {
@@ -81,68 +93,97 @@ def get_waiting_transactions(username):
                 "Location": row[4],
                 "Deny": "Deny",
                 "Approve": "Approve",
-                "Current Balance": util.money(row[5], disable_color=True)
+                "Current Balance": util.money(row[5], disable_color=True),
             }
             for row in res
         ]
 
+
 def review_transaction(transaction_id, is_approved, reviewer_username):
     with connection() as conn:
-        row = conn.execute(queries['select_transaction'], (transaction_id,)).fetchone()
+        row = conn.execute(queries["select_transaction"], (transaction_id,)).fetchone()
 
         if row is None:
             return False
 
-        conn.execute(queries['update_transaction_approval'],
-                     (is_approved, reviewer_username, int(time.time()), transaction_id))
+        conn.execute(
+            queries["update_transaction_approval"],
+            (is_approved, reviewer_username, int(time.time()), transaction_id),
+        )
 
         # Only update the balance if we actually approve the transaction
         if is_approved:
             owner, amount = row
-            conn.execute(queries['update_balance'], (amount, owner))
+            conn.execute(queries["update_balance"], (amount, owner))
 
-def create_transaction(username, amount_as_cents, description, location, is_admin, for_username = None):
+
+def create_transaction(
+    username, amount_as_cents, description, location, is_admin, for_username=None
+):
     with connection() as conn:
         owner = for_username if for_username else username
         reviewed_by = username if is_admin else None
         reviewed_at = int(time.time()) if is_admin else None
-        conn.execute(queries['insert_new_transaction'],
-                     (owner, amount_as_cents, description, location, is_admin, reviewed_by, reviewed_at, int(time.time())))
+        conn.execute(
+            queries["insert_new_transaction"],
+            (
+                owner,
+                amount_as_cents,
+                description,
+                location,
+                is_admin,
+                reviewed_by,
+                reviewed_at,
+                int(time.time()),
+            ),
+        )
 
         if is_admin:
-            conn.execute(queries['update_balance'], (amount_as_cents, owner))
+            conn.execute(queries["update_balance"], (amount_as_cents, owner))
+
 
 def delete_pending_transaction(transaction: Transaction, username):
     with connection() as conn:
-        conn.execute(queries['delete_transaction'], (transaction.transaction_id, username))
+        conn.execute(
+            queries["delete_transaction"], (transaction.transaction_id, username)
+        )
 
-@st.cache_data() # This can be application wide
+
+@st.cache_data()  # This can be application wide
 def get_all_non_admin_users():
     with connection() as conn:
-        return [row[0] for row in conn.execute(queries['select_all_usernames']).fetchall()]
+        return [
+            row[0] for row in conn.execute(queries["select_all_usernames"]).fetchall()
+        ]
+
 
 def get_user_by_username(username):
     with connection() as conn:
-        res = conn.execute(queries['select_user'], (username,)).fetchone()
+        res = conn.execute(queries["select_user"], (username,)).fetchone()
         return User(*res) if res else None
+
 
 def update_user(user: User):
     with connection() as conn:
-        conn.execute(queries['update_user'],
-                     (user.emoji, user.name, user.message, user.password, user.username))
+        conn.execute(
+            queries["update_user"],
+            (user.emoji, user.name, user.message, user.password, user.username),
+        )
+
 
 def get_first_user():
     """
     For debugging purposes, get the first normal user to login in as automatically in Dev mode
     """
     with connection() as conn:
-        res = conn.execute(queries['select_all_users'], (False,)).fetchone()
+        res = conn.execute(queries["select_all_users"], (False,)).fetchone()
         return User(*res) if res else None
+
 
 def get_first_admin_user():
     """
     For debugging purposes, get the first Admin user to login in as automatically in Dev mode
     """
     with connection() as conn:
-        res = conn.execute(queries['select_all_users'], (True,)).fetchone()
+        res = conn.execute(queries["select_all_users"], (True,)).fetchone()
         return User(*res) if res else None

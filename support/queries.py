@@ -63,5 +63,5 @@ query_strings = {
     "select_user": "SELECT * FROM users WHERE username = ?",
     "update_user": "UPDATE users SET emoji = ?, name = ?, message = ?, password = ? WHERE username = ?",
     "select_all_usernames": "SELECT username FROM users WHERE is_admin = FALSE",
-    "select_all_users": "SELECT * FROM users WHERE is_admin = ?"
+    "select_all_users": "SELECT * FROM users WHERE is_admin = ?",
 }
