@@ -13,4 +13,4 @@ async def lifespan(app):
     yield
     # This would run after the app is shutdown
 
-app = st.App("support/streamlit.py", lifespan=lifespan)
+app = st.App("support/app.py", lifespan=lifespan)

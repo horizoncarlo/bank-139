@@ -36,8 +36,9 @@ def dialog_do_transaction(deposit = True):
             # TODO ntfy.sh admin channel about new transaction?
 
             out_of_money = False
-            if not deposit and not st.session_state.user.is_admin:
-                out_of_money = st.session_state.user.balance + amount_as_cents < 0
+            if not deposit:
+                if not st.session_state.user.is_admin:
+                    out_of_money = st.session_state.user.balance + amount_as_cents < 0
             else:
                 st.session_state.need_balloons = True
             st.toast(f"Completed new {trans_type} for ${st.session_state.trans_amount:.2f}! {'\n\nNote you would be :red-badge[OUT OF MONEY] from this transaction. Good luck with approval :smirk:' if out_of_money else ''}", duration="long" if out_of_money else "short")

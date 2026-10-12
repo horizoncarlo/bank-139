@@ -106,7 +106,7 @@ def create_transaction(username, amount_as_cents, description, location, is_admi
         owner = for_username if for_username else username
         reviewed_by = username if is_admin else None
         reviewed_at = int(time.time()) if is_admin else None
-        conn.execute(queries['insert_new_transactions'],
+        conn.execute(queries['insert_new_transaction'],
                      (owner, amount_as_cents, description, location, is_admin, reviewed_by, reviewed_at, int(time.time())))
 
         if is_admin:
