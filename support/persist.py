@@ -55,7 +55,16 @@ def init():
 
 
 def deposit_weekly_allowance(db_conn, sunday_date):
-    print(f"TODO time to do allowances {db_conn} for {sunday_date}")
+    for username, amount in util.get_allowances():
+        create_transaction(
+            username,
+            amount_as_cents=amount * 100,
+            description="Weekly allowance",
+            location="Home",
+            is_admin=True,
+            conn_override=db_conn,
+        )
+        print(f"Deposit allowance for {username} for {sunday_date}")
 
 
 def delete_all_tables():
@@ -125,9 +134,16 @@ def review_transaction(transaction_id, is_approved, reviewer_username):
 
 
 def create_transaction(
-    username, amount_as_cents, description, location, is_admin, for_username=None
+    username,
+    amount_as_cents,
+    description,
+    location,
+    is_admin,
+    conn_override=None,
+    for_username=None,
 ):
-    with connection() as conn:
+    conn = conn_override or connection()
+    with conn:
         owner = for_username if for_username else username
         reviewed_by = username if is_admin else None
         reviewed_at = int(time.time()) if is_admin else None

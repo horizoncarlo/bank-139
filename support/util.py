@@ -85,6 +85,12 @@ def get_default_users():
     ]
 
 
+def get_allowances():
+    return [
+        (username, int(amount)) for username, amount in st.secrets.get("allowances", [])
+    ]
+
+
 def send_phone_notification(username, is_deposit: bool, amount_as_cents, description):
     if not NTFY_TOPIC:
         return
