@@ -14,7 +14,6 @@ def render():
             handle_review(st.session_state.row_approve['row'], is_approved=True)
 
         def handle_review(row_index: int, is_approved=False):
-            # TODO New "approval reason" field in a dialog or popover, so that admin can leave a message for user on why something got denied/accepted?
             record = st.session_state.waiting_transactions[row_index]
             if record:
                 db.review_transaction(record['ID'], is_approved, st.session_state.user.username)
@@ -22,9 +21,8 @@ def render():
                     f"{':green[APPROVED]' if is_approved else ':red[DENIED]'} the transaction from {record['Owner']} for {record['Amount']}")
                 del st.session_state.waiting_transactions
 
-        # TODO Need to handle inline row edits properly, which would mean saving back to db, such as for Current Balance to `user` account
         st.subheader(":crown: Awaiting Your :yellow[Royal Review]", divider=True)
-        st.data_editor(
+        st.dataframe(
             st.session_state.waiting_transactions,
             column_config={
                 "ID": st.column_config.NumberColumn("ID", disabled=True),

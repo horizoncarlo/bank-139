@@ -4,6 +4,7 @@ query_strings = {
         password TEXT NOT NULL,
         emoji TEXT DEFAULT ":zany:",
         name TEXT NOT NULL,
+        message TEXT,
         balance INTEGER NOT NULL DEFAULT 0,
         is_admin INTEGER NOT NULL DEFAULT 0
         )""",
@@ -20,10 +21,11 @@ query_strings = {
         )""",
     "drop_user_table": "DROP TABLE IF EXISTS users",
     "drop_transaction_table": "DROP TABLE IF EXISTS transactions",
-    "insert_default_users": f"""INSERT OR IGNORE INTO users (username, password, emoji, name, balance, is_admin) VALUES (?, ?, ?, ?, ?, ?)""",
+    "insert_default_users": f"""INSERT OR IGNORE INTO users (username, password, emoji, name, message, balance, is_admin) VALUES (?, ?, ?, ?, ?, ?, ?)""",
     "do_login": "SELECT * FROM users WHERE username = ? AND password = ?",
     "select_recent_transactions": """
         SELECT
+            t.transaction_id,
             t.amount,
             t.description,
             t.location,

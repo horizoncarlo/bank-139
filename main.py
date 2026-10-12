@@ -1,6 +1,7 @@
 import streamlit as st
 
 import persist as db
+import workarounds
 import util
 
 # Torn on the "scraps" concept, where smaller individual rendering pieces are put into component-like individual files
@@ -16,6 +17,9 @@ st.set_page_config(page_title="Bank 139 - \"Real World Money. Virtually\"",
                    page_icon=":money_mouth_face:",
                    layout="wide" if st.session_state.get('logged_in', util.DEBUG) else "centered",
                    initial_sidebar_state="collapsed")
+
+# Always show the vertical scrollbar
+workarounds.always_show_scrollbar()
 
 # Initialize the db, which creates all necessary tables, sets up the connection, etc.
 db.init()

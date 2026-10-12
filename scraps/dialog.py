@@ -1,6 +1,7 @@
 import streamlit as st
 
 import persist as db
+import workarounds
 
 @st.dialog("Transaction")
 def do_transaction(deposit = True):
@@ -9,7 +10,8 @@ def do_transaction(deposit = True):
 
         st.write(f"### Preparing to make a {trans_type}...")
 
-        st.number_input("Amount ($) :orange[*]", key="trans_amount", on_change="ignore", required=True, value=None, min_value=0.0, max_value=1000.0, step=0.5, format="%0.2f")
+        st.number_input("Amount ($) :orange[*]", key="trans_amount", on_change="ignore", required=True, value=None, min_value=0.0, max_value=1000.0, step=0.5, format="%0.2f", placeholder="Enter the money")
+        workarounds.focus_element(by_placeholder_text="Enter the money")
         st.text_area("Description and Notes :orange[*]", key="trans_description", on_change="ignore")
         st.text_input("Location", key="trans_location", on_change="ignore")
         if st.session_state.user.is_admin:

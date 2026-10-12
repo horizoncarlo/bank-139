@@ -1,3 +1,5 @@
+import streamlit as st
+
 import time
 import sqlite3
 from contextlib import closing, contextmanager
@@ -12,13 +14,14 @@ class User:
     password: str
     emoji: str # Emoji shortcode such as :smirk:
     name: str
+    message: str # Message below their name on home
     balance: int
     is_admin: bool = False
     pending_balance: int | None = None
 
 @dataclass
 class Transaction:
-    # owner: str - is used in the table itself, but not in our returned results
+    transaction_id: int
     amount: int
     description: str
     location: str | None # Optional
@@ -43,7 +46,7 @@ def init():
             if default_users:
                 conn.executemany(queries['insert_default_users'], default_users)
 
-def delete_all():
+def delete_all_tables():
     with connection() as conn:
         conn.execute(queries['drop_user_table'])
         conn.execute(queries['drop_transaction_table'])
@@ -53,9 +56,9 @@ def login(username, password):
         res = conn.execute(queries['do_login'], (username, password)).fetchone()
         return User(*res) if res else None
 
-def get_recent_transactions(username):
+def get_recent_transactions(username, fetch_all_instead = False):
     with connection() as conn:
-        res = conn.execute(queries['select_recent_transactions'], (username, util.RECENT_TRANSACTION_LIMIT)).fetchall()
+        res = conn.execute(queries['select_recent_transactions'], (username, util.RECENT_TRANSACTION_LIMIT if not fetch_all_instead else -1)).fetchall()
         to_return = [
             Transaction(*row)
             for row in res
@@ -126,6 +129,11 @@ def create_transaction(username, amount_as_cents, description, location, is_admi
                 (amount_as_cents, owner)
             )
 
+def delete_pending_transaction(transaction: Transaction, username):
+    with connection() as conn:
+        conn.execute("DELETE FROM transactions WHERE transaction_id = ? AND owner = ?", (transaction.transaction_id, username))
+
+@st.cache_data() # This can be application wide
 def get_all_non_admin_users():
     with connection() as conn:
         return [""] + [row[0] for row in conn.execute(
@@ -141,6 +149,3 @@ def get_first_admin_user(): # For debugging
     with connection() as conn:
         res = conn.execute("SELECT * FROM users WHERE is_admin = ?", (True,)).fetchone()
         return User(*res) if res else None
-
-def calc_balance_delta():
-    return 5 # TODO Determine our balance delta from the most recent 2 weeks

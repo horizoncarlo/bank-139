@@ -2,6 +2,7 @@ import streamlit as st
 
 import persist as db
 import util
+import workarounds
 
 def render():
     if util.DEBUG:
@@ -15,9 +16,9 @@ def render():
 
     with st.form("login_form"):
         st.write("### Welcome to :rainbow[Bank 139], please :shimmer[login]")
-        # TODO Annoying that Username can't autofocus - Streamlit limitation, but can be hacked around with forced client-side JS
-        st.text_input("Username", key="username", on_change="ignore", required=True)
-        st.text_input("Password", key="password", on_change="ignore", required=True, type="password")
+        st.text_input("Username", key="username", on_change="ignore", required=True, placeholder="Enter your username")
+        workarounds.focus_element("Enter your username")
+        st.text_input("Password", key="password", on_change="ignore", required=True, type="password", placeholder="Enter your password")
 
         if 'username' in st.session_state and 'password' in st.session_state and st.form_submit_button(":+1: Submit Login", type="primary"):
             user = db.login(st.session_state['username'], st.session_state['password'])
