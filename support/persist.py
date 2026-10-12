@@ -48,10 +48,9 @@ def init():
         conn.execute(queries["create_transaction_table"])
         conn.execute(queries["create_allowance_table"])
 
-        if util.DEBUG:
-            default_users = util.get_default_users()
-            if default_users:
-                conn.executemany(queries["insert_default_users"], default_users)
+        default_users = util.get_default_users()
+        if default_users:
+            conn.executemany(queries["insert_default_users"], default_users)
 
 
 def deposit_weekly_allowance(db_conn, sunday_date):
