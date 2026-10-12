@@ -1,10 +1,10 @@
 import streamlit as st
 
-import persist as db
-import workarounds
+from support import persist as db, workarounds
+
 
 @st.dialog("Transaction")
-def do_transaction(deposit = True):
+def dialog_do_transaction(deposit = True):
     with st.form("trans_form"):
         trans_type = ':moneybag: :green[Deposit]' if deposit else ':money_with_wings: :red[Withdraw]'
 
@@ -16,6 +16,7 @@ def do_transaction(deposit = True):
         st.text_input("Location", key="trans_location", on_change="ignore")
         if st.session_state.user.is_admin:
             basic_users = db.get_all_non_admin_users()
+            st.divider()
             st.selectbox("For a Different User?", key="trans_target", on_change="ignore", options=basic_users, index=None)
 
         if 'trans_amount' in st.session_state and 'trans_description' in st.session_state and st.form_submit_button(trans_type):

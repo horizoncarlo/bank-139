@@ -1,8 +1,7 @@
 import streamlit as st
 
-import persist as db
-import util
-import workarounds
+from support import persist as db, util, workarounds
+
 
 def render():
     if util.DEBUG:

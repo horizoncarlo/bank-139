@@ -1,5 +1,6 @@
 import streamlit as st
-import persist as db
+from support import persist as db
+
 
 def render():
     with st.expander(":orange-badge[:desktop_computer: DEBUG SETTINGS]"):

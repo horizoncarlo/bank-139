@@ -48,4 +48,20 @@ query_strings = {
         WHERE owner = ?
           AND reviewed_by IS NULL
     """,
+    "select_waiting_transactions": """
+        SELECT t.transaction_id, u.name, t.amount, t.description, t.location, u.balance, t.reviewed_by
+        FROM transactions t
+        JOIN users u ON u.username = t.owner
+        WHERE t.owner != ?
+          AND t.reviewed_by IS NULL
+    """,
+    "select_transaction": "SELECT owner, amount FROM transactions WHERE transaction_id = ?",
+    "update_transaction_approval": "UPDATE transactions SET is_approved = ?, reviewed_by = ?, reviewed_at = ? WHERE transaction_id = ?",
+    "insert_new_transaction": "INSERT INTO transactions (owner, amount, description, location, is_approved, reviewed_by, reviewed_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "delete_transaction": "DELETE FROM transactions WHERE transaction_id = ? AND owner = ?",
+    "update_balance": "UPDATE users SET balance = balance + ? WHERE username = ?",
+    "select_user": "SELECT * FROM users WHERE username = ?",
+    "update_user": "UPDATE users SET emoji = ?, name = ?, message = ?, password = ? WHERE username = ?",
+    "select_all_usernames": "SELECT username FROM users WHERE is_admin = FALSE",
+    "select_all_users": "SELECT * FROM users WHERE is_admin = ?"
 }

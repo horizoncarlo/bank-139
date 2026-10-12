@@ -59,12 +59,10 @@ def login(username, password):
 def get_recent_transactions(username, fetch_all_instead = False):
     with connection() as conn:
         res = conn.execute(queries['select_recent_transactions'], (username, util.RECENT_TRANSACTION_LIMIT if not fetch_all_instead else -1)).fetchall()
-        to_return = [
+        return [
             Transaction(*row)
             for row in res
         ]
-        print(f"TRANSACTIONS TO RETURN {to_return}")
-        return to_return
 
 def get_pending_total(username):
     with connection() as conn:
@@ -72,13 +70,7 @@ def get_pending_total(username):
 
 def get_waiting_transactions(username):
     with connection() as conn:
-        res = conn.execute("""
-            SELECT t.transaction_id, u.name, t.amount, t.description, t.location, u.balance, t.reviewed_by
-            FROM transactions t
-            JOIN users u ON u.username = t.owner
-            WHERE t.owner != ?
-              AND t.reviewed_by IS NULL
-        """, (username,)).fetchall()
+        res = conn.execute(queries['select_waiting_transactions'], (username,)).fetchall()
 
         return [
             {
@@ -96,61 +88,61 @@ def get_waiting_transactions(username):
 
 def review_transaction(transaction_id, is_approved, reviewer_username):
     with connection() as conn:
-        row = conn.execute(
-            "SELECT owner, amount FROM transactions WHERE transaction_id = ?",
-            (transaction_id,)
-        ).fetchone()
+        row = conn.execute(queries['select_transaction'], (transaction_id,)).fetchone()
 
         if row is None:
             return False
 
-        conn.execute("UPDATE transactions SET is_approved = ?, reviewed_by = ?, reviewed_at = ? WHERE transaction_id = ?",
+        conn.execute(queries['update_transaction_approval'],
                      (is_approved, reviewer_username, int(time.time()), transaction_id))
 
         # Only update the balance if we actually approve the transaction
         if is_approved:
             owner, amount = row
-            conn.execute(
-                "UPDATE users SET balance = balance + ? WHERE username = ?",
-                (amount, owner)
-            )
+            conn.execute(queries['update_balance'], (amount, owner))
 
 def create_transaction(username, amount_as_cents, description, location, is_admin, for_username = None):
     with connection() as conn:
         owner = for_username if for_username else username
         reviewed_by = username if is_admin else None
         reviewed_at = int(time.time()) if is_admin else None
-        conn.execute("INSERT INTO transactions (owner, amount, description, location, is_approved, reviewed_by, reviewed_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        conn.execute(queries['insert_new_transactions'],
                      (owner, amount_as_cents, description, location, is_admin, reviewed_by, reviewed_at, int(time.time())))
 
         if is_admin:
-            conn.execute(
-                "UPDATE users SET balance = balance + ? WHERE username = ?",
-                (amount_as_cents, owner)
-            )
+            conn.execute(queries['update_balance'], (amount_as_cents, owner))
 
 def delete_pending_transaction(transaction: Transaction, username):
     with connection() as conn:
-        conn.execute("DELETE FROM transactions WHERE transaction_id = ? AND owner = ?", (transaction.transaction_id, username))
+        conn.execute(queries['delete_transaction'], (transaction.transaction_id, username))
 
 @st.cache_data() # This can be application wide
 def get_all_non_admin_users():
     with connection() as conn:
-        return [row[0] for row in conn.execute(
-            "SELECT username FROM users WHERE is_admin = FALSE"
-        ).fetchall()]
+        return [row[0] for row in conn.execute(queries['select_all_usernames']).fetchall()]
 
 def get_user_by_username(username):
     with connection() as conn:
-        res = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+        res = conn.execute(queries['select_user'], (username,)).fetchone()
         return User(*res) if res else None
 
-def get_first_user(): # For debugging
+def update_user(user: User):
     with connection() as conn:
-        res = conn.execute("SELECT * FROM users WHERE is_admin = ?", (False,)).fetchone()
+        conn.execute(queries['update_user'],
+                     (user.emoji, user.name, user.message, user.password, user.username))
+
+def get_first_user():
+    """
+    For debugging purposes, get the first normal user to login in as automatically in Dev mode
+    """
+    with connection() as conn:
+        res = conn.execute(queries['select_all_users'], (False,)).fetchone()
         return User(*res) if res else None
 
-def get_first_admin_user(): # For debugging
+def get_first_admin_user():
+    """
+    For debugging purposes, get the first Admin user to login in as automatically in Dev mode
+    """
     with connection() as conn:
-        res = conn.execute("SELECT * FROM users WHERE is_admin = ?", (True,)).fetchone()
+        res = conn.execute(queries['select_all_users'], (True,)).fetchone()
         return User(*res) if res else None

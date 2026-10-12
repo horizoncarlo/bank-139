@@ -1,6 +1,7 @@
 import streamlit as st
 
-import persist as db
+from support import persist as db
+
 
 def render():
     if 'waiting_transactions' not in st.session_state:

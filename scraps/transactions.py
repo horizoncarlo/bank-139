@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-import persist as db
-import util
+from support import persist as db, util
+
 
 def render():
     if len(st.session_state.get('transactions', [])) == 0:
@@ -13,8 +13,10 @@ def render():
     # Mutate our data a bit - wrap as Pandas df, format our timestamps, and add a button column
     # For the waiting/pending transactions scrap we tried this at the DB level instead
     transactions = pd.DataFrame(st.session_state.transactions)
-    transactions["reviewed_at"] = pd.to_datetime(transactions["reviewed_at"], unit="s", utc=True).dt.tz_convert(util.TIMEZONE)
-    transactions["created_at"] = pd.to_datetime(transactions["created_at"], unit="s", utc=True).dt.tz_convert(util.TIMEZONE)
+    transactions["reviewed_at"] = pd.to_datetime(transactions["reviewed_at"], unit="s", utc=True).dt.tz_convert(
+        util.TIMEZONE)
+    transactions["created_at"] = pd.to_datetime(transactions["created_at"], unit="s", utc=True).dt.tz_convert(
+        util.TIMEZONE)
     transactions["control"] = [
         "Cancel" if (not row.reviewed_by or row.is_approved == "No") else None
         for row in st.session_state.transactions
@@ -61,5 +63,6 @@ def render():
                    hide_index=True,)
 
     with st.container(horizontal_alignment="right"):
+        # TODO Could be interesting to use st.pagination and OFFSET in SQLite to do proper pagination
         if st.button("Get Entire History", type="tertiary"):
             st.session_state.transactions = db.get_recent_transactions(st.session_state.user.username, fetch_all_instead=True)
