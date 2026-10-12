@@ -1,6 +1,6 @@
 import sqlite3
 import time
-from contextlib import closing, contextmanager
+from contextlib import closing, contextmanager, nullcontext
 from dataclasses import dataclass
 
 import streamlit as st
@@ -141,8 +141,7 @@ def create_transaction(
     conn_override=None,
     for_username=None,
 ):
-    conn = conn_override or connection()
-    with conn:
+    with connection() if conn_override is None else nullcontext(conn_override) as conn:
         owner = for_username if for_username else username
         reviewed_by = username if is_admin else None
         reviewed_at = int(time.time()) if is_admin else None
