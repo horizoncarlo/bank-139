@@ -1,10 +1,12 @@
 import streamlit as st
+import urllib.request
 
 DEBUG = st.secrets.get("is_dev", True)
 DB_NAME = st.secrets.get("db_name", "bank.db")
 RECENT_TRANSACTION_LIMIT = st.secrets.get("recent_transaction_limit", 50)
 DEFAULT_DATE_FORMAT = "hh:mma, YYYY-MM-DD"
 TIMEZONE = st.secrets.get("timezone", "America/Edmonton")
+NTFY_TOPIC = st.secrets.get("ntfy_topic")
 POSITIVE_MESSAGES = st.secrets.get("positive_messages", [
     "Rad", "Nice", "Sweet", "Awesome", "Excellent",
     "Fantastic", "Brilliant", "Superb", "Stellar", "Amazing",
@@ -31,3 +33,22 @@ def get_default_users():
         for username, password, emoji, name, message, balance, is_admin
         in st.secrets.get("default_users", [])
     ]
+
+def send_phone_notification(username, is_deposit: bool, amount_as_cents, description):
+    if not NTFY_TOPIC:
+        return
+
+    url = f"https://ntfy.sh/{NTFY_TOPIC}"
+
+    message = f"{username.capitalize()} {'Deposited' if is_deposit else 'Withdrew'} {money(amount_as_cents, disable_color=True)}: {description}"
+    data = message.encode("utf-8")
+    req = urllib.request.Request(url, data=data, method="POST")
+
+    req.add_header("Title", f"Bank 139 - {username.capitalize()}")
+    req.add_header("Tags", "bank")
+
+    try:
+        with urllib.request.urlopen(req) as response:
+            return response.getcode() == 200
+    except Exception as e:
+        print(f"Error sending alert phone notification: {e}")

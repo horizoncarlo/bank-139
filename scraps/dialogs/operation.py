@@ -1,7 +1,6 @@
 import streamlit as st
 
-from support import persist as db, workarounds
-
+from support import persist as db, workarounds, util
 
 @st.dialog("Transaction")
 def dialog_do_transaction(deposit = True):
@@ -33,7 +32,10 @@ def dialog_do_transaction(deposit = True):
                                   is_admin=st.session_state.user.is_admin,
                                   for_username=st.session_state.trans_target if 'trans_target' in st.session_state else None)
 
-            # TODO ntfy.sh admin channel about new transaction?
+            # Send a notification for user approvals
+            if not st.session_state.user.is_admin:
+                util.send_phone_notification(username=st.session_state.user.username, is_deposit=deposit,
+                                             amount_as_cents=amount_as_cents, description=st.session_state.trans_description)
 
             out_of_money = False
             if not deposit:
