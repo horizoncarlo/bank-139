@@ -55,10 +55,10 @@ def login(username, password):
 
 def get_recent_transactions(username):
     with connection() as conn:
-        res = conn.execute(queries['select_recent_transactions'], (username, util.RECENT_TRANSACTION_LIMIT))
+        res = conn.execute(queries['select_recent_transactions'], (username, util.RECENT_TRANSACTION_LIMIT)).fetchall()
         to_return = [
             Transaction(*row)
-            for row in res.fetchall()
+            for row in res
         ]
         print(f"TRANSACTIONS TO RETURN {to_return}")
         return to_return
@@ -112,18 +112,25 @@ def review_transaction(transaction_id, is_approved, reviewer_username):
                 (amount, owner)
             )
 
-def create_transaction(username, amount_as_cents, description, location, is_admin):
+def create_transaction(username, amount_as_cents, description, location, is_admin, for_username = None):
     with connection() as conn:
+        owner = for_username if for_username else username
         reviewed_by = username if is_admin else None
         reviewed_at = int(time.time()) if is_admin else None
         conn.execute("INSERT INTO transactions (owner, amount, description, location, is_approved, reviewed_by, reviewed_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                     (username, amount_as_cents, description, location, is_admin, reviewed_by, reviewed_at, int(time.time())))
+                     (owner, amount_as_cents, description, location, is_admin, reviewed_by, reviewed_at, int(time.time())))
 
         if is_admin:
             conn.execute(
                 "UPDATE users SET balance = balance + ? WHERE username = ?",
-                (amount_as_cents, username)
+                (amount_as_cents, owner)
             )
+
+def get_all_non_admin_users():
+    with connection() as conn:
+        return [""] + [row[0] for row in conn.execute(
+            "SELECT username FROM users WHERE is_admin = FALSE"
+        ).fetchall()]
 
 def get_first_user(): # For debugging
     with connection() as conn:

@@ -12,6 +12,7 @@ def render():
                 st.session_state.logged_in = True
                 st.session_state.user = db.get_first_admin_user()
                 del st.session_state.transactions
+                del st.session_state.waiting_transactions
         with col2:
             if st.button("Become User", width=150):
                 st.session_state.logged_in = True

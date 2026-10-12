@@ -20,7 +20,7 @@ def render():
         "amount": lambda amount: util.money(amount, disable_color=True)
     })
 
-    # TODO See https://docs.streamlit.io/develop/api-reference/data/st.column_config for dataframe column config
+    # See https://docs.streamlit.io/develop/api-reference/data/st.column_config for dataframe column config
     trans_config = {
         "amount": "Amount",
         "description": "Description",
@@ -31,6 +31,7 @@ def render():
         "created_at": st.column_config.DatetimeColumn("Date", format=util.DEFAULT_DATE_FORMAT)
     }
 
+    # TODO Users should be able to delete their reviewed and REJECTED transactions, to keep the table clean. Means a data_editor instead of dataframe
     # TODO Add "cancel transaction" request for non-approved pending options
 
     st.dataframe(transactions,
