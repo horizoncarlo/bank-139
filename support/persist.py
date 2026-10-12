@@ -4,8 +4,9 @@ from contextlib import closing, contextmanager
 from dataclasses import dataclass
 
 import streamlit as st
-import util
-from queries import query_strings as queries
+
+from support import util
+from support.queries import query_strings as queries
 
 
 @dataclass
@@ -45,6 +46,7 @@ def init():
     with connection() as conn:
         conn.execute(queries["create_user_table"])
         conn.execute(queries["create_transaction_table"])
+        conn.execute(queries["create_allowance_table"])
 
         if util.DEBUG:
             default_users = util.get_default_users()
@@ -52,10 +54,15 @@ def init():
                 conn.executemany(queries["insert_default_users"], default_users)
 
 
+def deposit_weekly_allowance(db_conn, sunday_date):
+    print(f"TODO time to do allowances {db_conn} for {sunday_date}")
+
+
 def delete_all_tables():
     with connection() as conn:
         conn.execute(queries["drop_user_table"])
         conn.execute(queries["drop_transaction_table"])
+        conn.execute(queries["drop_allowance_table"])
 
 
 def login(username, password):
@@ -149,7 +156,7 @@ def delete_pending_transaction(transaction: Transaction, username):
         )
 
 
-@st.cache_data()  # This can be application wide
+@st.cache_data()  # This list can safely be application wide
 def get_all_non_admin_users():
     with connection() as conn:
         return [

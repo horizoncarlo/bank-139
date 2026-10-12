@@ -19,8 +19,15 @@ query_strings = {
         reviewed_at INTEGER,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
         )""",
+    "create_allowance_table": """
+        CREATE TABLE IF NOT EXISTS allowances (
+            sunday_date TEXT PRIMARY KEY,
+            run_timestamp TEXT NOT NULL
+        )
+    """,
     "drop_user_table": "DROP TABLE IF EXISTS users",
     "drop_transaction_table": "DROP TABLE IF EXISTS transactions",
+    "drop_allowance_table": "DROP TABLE IF EXISTS allowances",
     "insert_default_users": f"""INSERT OR IGNORE INTO users (username, password, emoji, name, message, balance, is_admin) VALUES (?, ?, ?, ?, ?, ?, ?)""",
     "do_login": "SELECT * FROM users WHERE username = ? AND password = ?",
     "select_recent_transactions": """
@@ -64,4 +71,6 @@ query_strings = {
     "update_user": "UPDATE users SET emoji = ?, name = ?, message = ?, password = ? WHERE username = ?",
     "select_all_usernames": "SELECT username FROM users WHERE is_admin = FALSE",
     "select_all_users": "SELECT * FROM users WHERE is_admin = ?",
+    "select_latest_sunday": "SELECT MAX(sunday_date) FROM allowances",
+    "insert_new_allowance": "INSERT INTO allowances (sunday_date, run_timestamp) VALUES (?, ?)",
 }

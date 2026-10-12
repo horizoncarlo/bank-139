@@ -1,19 +1,37 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 import streamlit as st
 
-
-def setup_auto_allowance():
-    print("TODO Auto allowance")
+import support.persist as db
+from support.allowance import WeeklyAllowanceScheduler
 
 
 @asynccontextmanager
 async def lifespan(app):
-    # This runs before any user connects
-    setup_auto_allowance()
+    # This runs when the app starts up, even before a user hits the app
+    scheduler = WeeklyAllowanceScheduler(
+        connection_factory=db.connection,
+        deposit_allowance=db.deposit_weekly_allowance,
+    )
 
-    yield
-    # This would run after the app is shutdown
+    stop_event = asyncio.Event()
+
+    task = asyncio.create_task(
+        scheduler.run_loop(
+            stop_event,
+            check_interval_seconds=3600,
+        ),
+        name="weekly-allowance-scheduler",
+    )
+
+    try:
+        yield
+
+        # Anything here runs after the app is shutdown
+    finally:
+        stop_event.set()
+        await task
 
 
 app = st.App("support/app.py", lifespan=lifespan)

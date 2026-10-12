@@ -21,9 +21,6 @@ st.set_page_config(
 # Always show the vertical scrollbar
 workarounds.always_show_scrollbar()
 
-# Initialize the db, which creates all necessary tables, sets up the connection, etc.
-db.init()
-
 # If we're not logged in, show that screen
 if "logged_in" not in st.session_state:
     scraps.login.render()
