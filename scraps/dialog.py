@@ -16,7 +16,7 @@ def do_transaction(deposit = True):
         st.text_input("Location", key="trans_location", on_change="ignore")
         if st.session_state.user.is_admin:
             basic_users = db.get_all_non_admin_users()
-            st.selectbox("For a Different User?", key="trans_target", on_change="ignore", options=basic_users)
+            st.selectbox("For a Different User?", key="trans_target", on_change="ignore", options=basic_users, index=None)
 
         if 'trans_amount' in st.session_state and 'trans_description' in st.session_state and st.form_submit_button(trans_type):
             if st.session_state.trans_amount <= 0:

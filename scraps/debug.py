@@ -2,7 +2,7 @@ import streamlit as st
 import persist as db
 
 def render():
-    with st.expander(":orange-badge[:desktop_computer: DEBUG SETTINGS]", expanded=True):
+    with st.expander(":orange-badge[:desktop_computer: DEBUG SETTINGS]"):
         msg = None
         stop_requested = False
 

@@ -7,8 +7,6 @@ import workarounds
 def render():
     if util.DEBUG:
         st.session_state.logged_in = True
-        # TODO Likely just debug login as a user...depends what we're testing
-        # st.session_state.user = db.get_first_user()
         st.session_state.user = db.get_first_admin_user()
         return
 

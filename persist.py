@@ -136,9 +136,14 @@ def delete_pending_transaction(transaction: Transaction, username):
 @st.cache_data() # This can be application wide
 def get_all_non_admin_users():
     with connection() as conn:
-        return [""] + [row[0] for row in conn.execute(
+        return [row[0] for row in conn.execute(
             "SELECT username FROM users WHERE is_admin = FALSE"
         ).fetchall()]
+
+def get_user_by_username(username):
+    with connection() as conn:
+        res = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+        return User(*res) if res else None
 
 def get_first_user(): # For debugging
     with connection() as conn:
