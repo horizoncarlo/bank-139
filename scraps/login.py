@@ -38,6 +38,7 @@ def render():
             and "password" in st.session_state
             and st.form_submit_button(":+1: Submit Login", type="primary")
         ):
+            # Passwords are unhashed. Oh nooooo not our fake money data in SQLite! Realistically wanted to keep it simple
             user = db.login(st.session_state["username"], st.session_state["password"])
             if user:
                 st.session_state.logged_in = True
