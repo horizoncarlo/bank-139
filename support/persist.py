@@ -170,10 +170,7 @@ def delete_pending_transaction(transaction: Transaction, username):
 
 def get_all_non_admin_users():
     with connection() as conn:
-        return [
-            f"{row[0]} ({util.money(row[1], disable_color=True)})"
-            for row in conn.execute(queries["select_normal_users"]).fetchall()
-        ]
+        return conn.execute(queries["select_normal_users"]).fetchall()
 
 
 def get_user_by_username(username):

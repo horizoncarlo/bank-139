@@ -74,7 +74,12 @@ def render():
                 "Login as User",
                 key="login_as_user",
                 on_change=login_as_user(),
-                options=basic_users,
+                options=[user[0] for user in basic_users],
+                format_func=lambda username: next(
+                    f"{u} ({util.money(balance, disable_color=True)})"
+                    for u, balance in basic_users
+                    if u == username
+                ),
                 index=None,
                 width=150,
                 placeholder="Choose person",

@@ -41,8 +41,13 @@ def dialog_do_transaction(deposit=True):
                 "For a Different User?",
                 key="trans_target",
                 on_change="ignore",
-                options=basic_users,
                 index=None,
+                options=[user[0] for user in basic_users],
+                format_func=lambda username: next(
+                    f"{u} ({util.money(balance, disable_color=True)})"
+                    for u, balance in basic_users
+                    if u == username
+                ),
             )
 
         if (

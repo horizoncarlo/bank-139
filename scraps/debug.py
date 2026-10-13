@@ -24,6 +24,7 @@ def render():
             if st.button("Clear Session", width=150):
                 st.session_state.clear()
                 msg = "Browser session data has been cleared"
+                st.rerun()
         with col4:
             if st.button("Delete DB", width=150):
                 db.delete_all_tables()
