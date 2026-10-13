@@ -2,14 +2,17 @@
 # And also CLI via `streamlit config show`
 
 [client]
-toolbarMode = "auto" # auto (based on host setup), developer, viewer, minimal (aka none)
+toolbarMode = "minimal" # auto (based on host setup), developer, viewer, minimal (aka none)
 showSidebarNavigation = true
+
+[browser]
+gatherUsageStats = false
 
 [runner]
 magicEnabled = false # Require st.write instead of auto-writing floating vars to page
 
 [server]
-fileWatcherType = "auto" # Should be "none" for Prod as we don't need to hot deploy changes
+fileWatcherType = "none" # Should be "none" for Prod as we don't need to hot deploy changes
 headless = true # Default false, but that opens a browser on start which is annoying for our workflow
 port = 8501 # Default 8501
 enableCORS = true # Default true, but might need to set corsAllowedOrigins when deployed
