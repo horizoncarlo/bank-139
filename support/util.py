@@ -63,7 +63,7 @@ NEGATIVE_MESSAGES = st.secrets.get(
 
 
 def log(message: str):
-    print(f"{datetime.now()}: {message}")
+    print(f"{datetime.now()}: {message}", flush=True)
 
 
 def money(value_in_cents: int, disable_color: bool = False):
