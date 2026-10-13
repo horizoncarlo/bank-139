@@ -19,6 +19,7 @@ def render():
             key="username",
             on_change="ignore",
             required=True,
+            autocomplete="on",
             placeholder="Enter your username",
         )
         workarounds.focus_element("Enter your username")
@@ -28,6 +29,7 @@ def render():
             on_change="ignore",
             required=True,
             type="password",
+            autocomplete="on",
             placeholder="Enter your password",
         )
 

@@ -69,7 +69,7 @@ query_strings = {
     "update_balance": "UPDATE users SET balance = balance + ? WHERE username = ?",
     "select_user": "SELECT * FROM users WHERE username = ?",
     "update_user": "UPDATE users SET emoji = ?, name = ?, message = ?, password = ? WHERE username = ?",
-    "select_all_usernames": "SELECT username FROM users WHERE is_admin = FALSE",
+    "select_normal_users": "SELECT username, balance FROM users WHERE is_admin = FALSE",
     "select_all_users": "SELECT * FROM users WHERE is_admin = ?",
     "select_latest_sunday": "SELECT MAX(sunday_date) FROM allowances",
     "insert_new_allowance": "INSERT INTO allowances (sunday_date, run_timestamp) VALUES (?, ?)",

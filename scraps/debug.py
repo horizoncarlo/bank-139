@@ -4,7 +4,7 @@ from support import persist as db
 
 
 def render():
-    with st.expander(":orange-badge[:desktop_computer: DEBUG SETTINGS]"):
+    with st.expander(":orange-badge[:desktop_computer: DEBUG SETTINGS]", expanded=True):
         msg = None
         stop_requested = False
 
@@ -27,6 +27,7 @@ def render():
         with col4:
             if st.button("Delete DB", width=150):
                 db.delete_all_tables()
+                db.init()
                 msg = "Deleted the entire database, refresh the page to redo initialization"
                 stop_requested = True
 

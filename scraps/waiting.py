@@ -47,3 +47,10 @@ def render():
             },
             hide_index=True,
         )
+
+    with st.container(horizontal_alignment="right"):
+        if st.button(
+            ":shimmer[Refresh Approvals] :arrows_counterclockwise:", type="tertiary"
+        ):
+            del st.session_state.waiting_transactions
+            st.rerun()

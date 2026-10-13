@@ -9,7 +9,7 @@ from support import util
 
 
 def render():
-    col1, col2, col3, col4 = st.columns(4, gap=None)
+    col1, col2, col3, col4 = st.columns([2, 1, 1, 1], gap=None)
     with col1:
         st.write(
             f"## {st.session_state.user.emoji} {st.session_state.user.name} at :rainbow[Bank 139]"
@@ -18,6 +18,9 @@ def render():
             if st.button("", icon=":material/person_edit:", type="tertiary"):
                 dialog_edit_profile()
             st.markdown(st.session_state.user.message)
+            if st.button("", icon=":material/logout:", type="tertiary"):
+                st.session_state.clear()
+                st.rerun()
     with col2:
         st.metric(
             "Balance",

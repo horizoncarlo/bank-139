@@ -8,6 +8,7 @@ RECENT_TRANSACTION_LIMIT = st.secrets.get("recent_transaction_limit", 50)
 DEFAULT_DATE_FORMAT = "hh:mma, YYYY-MM-DD"
 TIMEZONE = st.secrets.get("timezone", "America/Edmonton")
 NTFY_TOPIC = st.secrets.get("ntfy_topic")
+NTFY_RETURN_URL = st.secrets.get("ntfy_return_url")
 POSITIVE_MESSAGES = st.secrets.get(
     "positive_messages",
     [
@@ -103,6 +104,8 @@ def send_phone_notification(username, is_deposit: bool, amount_as_cents, descrip
 
     req.add_header("Title", f"Bank 139 - {username.capitalize()}")
     req.add_header("Tags", "bank")
+    if NTFY_RETURN_URL:
+        req.add_header("Actions", f"view, Open App, {NTFY_RETURN_URL}")
 
     try:
         with urllib.request.urlopen(req) as response:

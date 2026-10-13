@@ -3,8 +3,6 @@ import time
 from contextlib import closing, contextmanager, nullcontext
 from dataclasses import dataclass
 
-import streamlit as st
-
 from support import util
 from support.queries import query_strings as queries
 
@@ -170,11 +168,11 @@ def delete_pending_transaction(transaction: Transaction, username):
         )
 
 
-@st.cache_data()  # This list can safely be application wide
 def get_all_non_admin_users():
     with connection() as conn:
         return [
-            row[0] for row in conn.execute(queries["select_all_usernames"]).fetchall()
+            f"{row[0]} ({util.money(row[1], disable_color=True)})"
+            for row in conn.execute(queries["select_normal_users"]).fetchall()
         ]
 
 
