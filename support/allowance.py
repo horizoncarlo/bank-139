@@ -70,7 +70,7 @@ class WeeklyAllowanceScheduler:
                     conn.commit()
                     completed += 1
 
-                    print(f"Processed weekly allowance for {due_sunday.isoformat()}")
+                    util.log(f"Processed weekly allowance for {due_sunday.isoformat()}")
 
                 except Exception:
                     conn.rollback()
@@ -83,10 +83,10 @@ class WeeklyAllowanceScheduler:
                 completed = await asyncio.to_thread(self.check_and_run)
 
                 if completed:
-                    print(f"Processed {completed} weekly allowance period(s)")
+                    util.log(f"Processed {completed} weekly allowance period(s)")
 
             except Exception:
-                print("Weekly allowance check failed")
+                util.log("Weekly allowance check failed")
 
             # Can wake immediately on shutdown rather than waiting an hour
             try:

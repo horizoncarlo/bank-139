@@ -39,14 +39,16 @@ def render():
             and st.form_submit_button(":+1: Submit Login", type="primary")
         ):
             # Passwords are unhashed. Oh nooooo not our fake money data in SQLite! Realistically wanted to keep it simple
-            user = db.login(st.session_state["username"], st.session_state["password"])
+            user = db.login(st.session_state.username, st.session_state.password)
             if user:
                 st.session_state.logged_in = True
                 st.session_state.user = user
 
+                util.log(f"Logged in {st.session_state.username}")
                 st.success(f"Login successful as {user.name}")
                 stop_flow = False
             else:
+                util.log(f"Failed login for {st.session_state.username}")
                 st.error("Login failed, just keep trying maybe...")
 
     st.stop() if stop_flow else st.rerun()

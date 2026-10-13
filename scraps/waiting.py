@@ -1,6 +1,7 @@
 import streamlit as st
 
 from support import persist as db
+from support import util
 
 
 def render():
@@ -22,6 +23,9 @@ def render():
             if record:
                 db.review_transaction(
                     record["ID"], is_approved, st.session_state.user.username
+                )
+                util.log(
+                    f"{st.session_state.user.username} just {'Approved' if is_approved else 'Denied'} transaction for {record['Owner']} for {record['Amount']}"
                 )
                 st.toast(
                     f"{':green[APPROVED]' if is_approved else ':red[DENIED]'} the transaction from {record['Owner']} for {record['Amount']}"

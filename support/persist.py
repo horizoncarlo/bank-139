@@ -61,7 +61,7 @@ def deposit_weekly_allowance(db_conn, sunday_date):
             is_admin=True,
             conn_override=db_conn,
         )
-        print(f"Deposit allowance for {username} for {sunday_date}")
+        util.log(f"Deposit allowance for {username} for {sunday_date}")
 
 
 def delete_all_tables():

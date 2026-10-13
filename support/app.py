@@ -21,7 +21,9 @@ st.set_page_config(
 # Always show the vertical scrollbar
 workarounds.always_show_scrollbar()
 
-# If we're not logged in, show that screen
+if "new_session" not in st.session_state:
+    st.session_state.new_session = True
+    util.log("New session created")
 if "logged_in" not in st.session_state:
     scraps.login.render()
 if "need_balloons" in st.session_state:

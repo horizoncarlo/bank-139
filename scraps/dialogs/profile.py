@@ -3,7 +3,7 @@ from dataclasses import replace
 import streamlit as st
 
 from support import persist as db
-from support import workarounds
+from support import util, workarounds
 
 
 @st.dialog("Edit Profile")
@@ -57,5 +57,6 @@ def dialog_edit_profile():
 
             db.update_user(to_save)
             st.session_state.user = to_save
+            util.log(f"Profile edited for {st.session_state.user.username}")
             st.toast("Profile changes successfully saved")
             st.rerun()

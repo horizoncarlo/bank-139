@@ -1,4 +1,5 @@
 import urllib.request
+from datetime import datetime
 
 import streamlit as st
 
@@ -61,6 +62,10 @@ NEGATIVE_MESSAGES = st.secrets.get(
 )
 
 
+def log(message: str):
+    print(f"{datetime.now()}: {message}")
+
+
 def money(value_in_cents: int, disable_color: bool = False):
     as_money = f"${value_in_cents/100:.2f}"
     if not disable_color:
@@ -111,4 +116,4 @@ def send_phone_notification(username, is_deposit: bool, amount_as_cents, descrip
         with urllib.request.urlopen(req) as response:
             return response.getcode() == 200
     except Exception as e:
-        print(f"Error sending alert phone notification: {e}")
+        log(f"Error sending alert phone notification: {e}")

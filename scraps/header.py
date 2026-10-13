@@ -88,6 +88,6 @@ def render():
     with col4:
         with st.container(horizontal=True):
             if st.button(":moneybag: Deposit", width=200, type="primary"):
-                dialog_do_transaction(deposit=True)
+                dialog_do_transaction(is_deposit=True)
             if st.button(":money_with_wings: Withdraw", width=200):
-                dialog_do_transaction(deposit=False)
+                dialog_do_transaction(is_deposit=False)

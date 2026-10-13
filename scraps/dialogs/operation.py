@@ -5,11 +5,11 @@ from support import util, workarounds
 
 
 @st.dialog("Transaction")
-def dialog_do_transaction(deposit=True):
+def dialog_do_transaction(is_deposit=True):
     with st.form("trans_form"):
         trans_type = (
             ":moneybag: :green[Deposit]"
-            if deposit
+            if is_deposit
             else ":money_with_wings: :red[Withdraw]"
         )
 
@@ -60,7 +60,7 @@ def dialog_do_transaction(deposit=True):
                 return
 
             amount_as_cents = round(
-                abs(st.session_state.trans_amount) * (1 if deposit else -1) * 100, 2
+                abs(st.session_state.trans_amount) * (1 if is_deposit else -1) * 100, 2
             )  # Store based on deposit or withdraw
 
             db.create_transaction(
@@ -80,19 +80,22 @@ def dialog_do_transaction(deposit=True):
             if not st.session_state.user.is_admin:
                 util.send_phone_notification(
                     username=st.session_state.user.username,
-                    is_deposit=deposit,
+                    is_deposit=is_deposit,
                     amount_as_cents=amount_as_cents,
                     description=st.session_state.trans_description,
                 )
 
             out_of_money = False
-            if not deposit:
+            if not is_deposit:
                 if not st.session_state.user.is_admin:
                     out_of_money = st.session_state.user.balance + amount_as_cents < 0
             else:
                 st.session_state.need_balloons = True
+            util.log(
+                f"{'Deposit' if is_deposit else 'Withdraw'} done by {st.session_state.user.username} for {util.money(amount_as_cents, disable_color=True)}"
+            )
             st.toast(
-                f"Completed new {trans_type} for ${st.session_state.trans_amount:.2f}! {'\n\nNote you would be :red-badge[OUT OF MONEY] from this transaction. Good luck with approval :smirk:' if out_of_money else ''}",
+                f"Completed new {trans_type} for {util.money(amount_as_cents, disable_color=True)}! {'\n\nNote you would be :red-badge[OUT OF MONEY] from this transaction. Good luck with approval :smirk:' if out_of_money else ''}",
                 duration="long" if out_of_money else "short",
             )
 
